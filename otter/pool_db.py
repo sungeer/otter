@@ -4,15 +4,17 @@ import threading
 import MySQLdb
 from MySQLdb.cursors import DictCursor
 
+from otter.conf import settings
+
 
 def get_db_conn():
     conn = MySQLdb.connect(
-        host=str(DATABASES['default']['HOST']),
-        port=int(DATABASES['default']['PORT']),
-        db=str(DATABASES['default']['NAME']),
-        user=str(DATABASES['default']['USER']),
-        passwd=str(DATABASES['default']['PASSWORD']),
-        charset='utf8',
+        host=settings.DB_HOST,
+        port=int(settings.DB_PORT),
+        db=settings.DB_NAME,
+        user=settings.DB_USER,
+        passwd=settings.DB_PASS,
+        charset='utf8mb4',
         cursorclass=DictCursor
     )
     return conn
@@ -27,6 +29,9 @@ class MySQLConnection:
 
     def cursor(self, *args, **kwargs):
         return self.conn.cursor(*args, **kwargs)
+
+    def begin(self):
+        return self.conn.begin()
 
     def commit(self):
         return self.conn.commit()
@@ -69,7 +74,7 @@ class MySQLPool:
 
     def connection(self):
         try:
-            conn = self.pool.get(block=True, timeout=30)
+            conn = self.pool.get(block=False)
             if not conn.is_usable():  # 不可用
                 conn.real_close()  # 关闭
                 with self.lock:
@@ -118,3 +123,11 @@ class MySQLPool:
                 self.used.remove(conn)
                 self.total -= 1
                 assert self.total >= 0, 'total should never be negative'
+
+
+db_pool = MySQLPool()
+
+
+def create_dbpool_conn():
+    conn = db_pool.connection()  # 从连接池中获取一个连接
+    return conn

@@ -6,5 +6,5 @@ pip install -r requirements.txt
 
 python -m pip install mysqlclient flask python-dotenv requests loguru
 
-
+python -m pip install granian
 
