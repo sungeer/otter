@@ -1,4 +1,3 @@
-import atexit
 import queue
 import threading
 
@@ -106,8 +105,6 @@ class MySQLPool:
 
 
 db_pool = MySQLPool()
-
-atexit.register(db_pool.close_all)
 
 
 def create_dbpool_conn():
