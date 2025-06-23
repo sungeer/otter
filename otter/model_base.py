@@ -31,7 +31,7 @@ class BaseModel:
                 self.cursor.execute('UNLOCK TABLES;')
                 self.cursor.close()
             if self._conn:
-                self._conn.close()
+                self._conn.close()  # conn_obj.close() 释放连接
         finally:
             self.cursor = None
             self._conn = None
