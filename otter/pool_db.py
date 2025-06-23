@@ -1,3 +1,4 @@
+import atexit
 import queue
 import threading
 
@@ -60,12 +61,10 @@ class MySQLConnection:
 
 class MySQLPool:
 
-    def __init__(self, maxsize=10):
-        self.maxsize = maxsize
+    def __init__(self):
         self.lock = threading.Lock()
-        self.pool = queue.Queue(maxsize)
+        self.pool = queue.Queue(5)  # 最多5个空闲连接
         self.used = set()  # 已借出的连接对象
-        self.total = 0  # 当前连接总数
 
     def create_new_conn(self):
         raw_conn = get_db_conn()
@@ -77,21 +76,9 @@ class MySQLPool:
             conn = self.pool.get(block=False)
             if not conn.is_usable():  # 不可用
                 conn.real_close()  # 关闭
-                with self.lock:
-                    self.total -= 1
-                    assert self.total >= 0, 'total should never be negative'
-                    if self.total < self.maxsize:
-                        conn = self.create_new_conn()
-                        self.total += 1
-                    else:
-                        raise Exception('All connections are in use')
+                conn = self.create_new_conn()
         except queue.Empty:
-            with self.lock:
-                if self.total < self.maxsize:
-                    conn = self.create_new_conn()
-                    self.total += 1
-                else:
-                    raise Exception('All connections are in use')
+            conn = self.create_new_conn()
         with self.lock:
             self.used.add(conn)
         conn.in_use = True
@@ -107,25 +94,20 @@ class MySQLPool:
             self.pool.put_nowait(conn)
         except queue.Full:
             conn.real_close()
-            with self.lock:
-                self.total -= 1
-                assert self.total >= 0, 'total should never be negative'
 
     def close_all(self):
         with self.lock:
             while not self.pool.empty():
                 conn = self.pool.get_nowait()
                 conn.real_close()
-                self.total -= 1
-                assert self.total >= 0, 'total should never be negative'
             for conn in list(self.used):
                 conn.real_close()
                 self.used.remove(conn)
-                self.total -= 1
-                assert self.total >= 0, 'total should never be negative'
 
 
 db_pool = MySQLPool()
+
+atexit.register(db_pool.close_all)
 
 
 def create_dbpool_conn():
