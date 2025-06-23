@@ -15,6 +15,14 @@ def create_app():
 
 
 def register_errors(app):  # noqa
+    @app.errorhandler(404)
+    def not_found(error):
+        return abort(404)
+
+    @app.errorhandler(405)
+    def not_found(error):
+        return abort(405)
+
     @app.errorhandler(Exception)
     def global_exception_handler(error):
         logger.exception(error)
