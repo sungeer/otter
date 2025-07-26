@@ -1,4 +1,5 @@
 import queue
+import threading
 
 import MySQLdb
 from MySQLdb.cursors import DictCursor
@@ -58,7 +59,9 @@ class MySQLConnection:
 class MySQLPool:
 
     def __init__(self):
+        self.lock = threading.Lock()
         self.pool = queue.Queue(5)  # 最多5个空闲连接
+        self.used = set()  # 已借出的连接对象
 
     def create_new_conn(self):
         raw_conn = get_db_conn()
@@ -73,16 +76,30 @@ class MySQLPool:
                 conn = self.create_new_conn()
         except queue.Empty:
             conn = self.create_new_conn()
+        with self.lock:
+            self.used.add(conn)
         conn.in_use = True
         return conn
 
     def release(self, conn):
-        if conn.in_use:
-            conn.in_use = False
-            try:
-                self.pool.put_nowait(conn)
-            except queue.Full:
+        if conn.in_use is False:  # 防止重复释放
+            return
+        conn.in_use = False
+        with self.lock:
+            self.used.remove(conn)
+        try:
+            self.pool.put_nowait(conn)
+        except queue.Full:
+            conn.real_close()
+
+    def close_all(self):
+        with self.lock:
+            while not self.pool.empty():
+                conn = self.pool.get_nowait()
                 conn.real_close()
+            for conn in list(self.used):
+                conn.real_close()
+                self.used.remove(conn)
 
 
 db_pool = MySQLPool()
