@@ -1,1 +1,0 @@
-from otter.run import app

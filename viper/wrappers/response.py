@@ -1,7 +1,14 @@
-from flask import Response
-from werkzeug.http import HTTP_STATUS_CODES
+from http import HTTPStatus
 
-from viper.util_json import dict_to_json_stream
+from starlette.responses import JSONResponse
+
+from viper.utils.util_json import dict_to_json_stream
+
+
+class JsonExtendResponse(JSONResponse):
+
+    def render(self, content):
+        return dict_to_json_stream(content)
 
 
 class BaseResponse:
@@ -22,13 +29,6 @@ class BaseResponse:
         return resp_dict
 
 
-class JsonExtendResponse(Response):
-
-    def __init__(self, response, **kwargs):
-        json_response = dict_to_json_stream(response)
-        super().__init__(json_response, mimetype='application/json', **kwargs)
-
-
 def jsonify(*args, **kwargs):
     if args and kwargs:
         raise TypeError('jsonify() behavior undefined when passed both args and kwargs')
@@ -44,7 +44,7 @@ def jsonify(*args, **kwargs):
 
 def abort(error_code, message=None):
     if not message:
-        message = HTTP_STATUS_CODES.get(error_code)
+        message = HTTPStatus(error_code).phrase
     response = BaseResponse()
     response.status = False
     response.error_code = error_code

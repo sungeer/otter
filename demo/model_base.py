@@ -1,4 +1,4 @@
-from otter.pool_db import create_dbpool_conn
+from viper.pool_db import create_dbpool_conn
 
 
 class BaseModel:

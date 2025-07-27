@@ -1,4 +1,4 @@
-from otter.model_base import BaseModel
+from viper.model_base import BaseModel
 
 
 class MessageModel(BaseModel):

@@ -1,5 +1,7 @@
 from starlette.requests import Request
 
+from viper.core.routes import response_for_path
+
 
 async def app(scope, receive, send):
     if scope['type'] == 'http':
@@ -8,26 +10,10 @@ async def app(scope, receive, send):
         path = request.url.path
         query_string = str(request.url.query)
         headers = dict(request.headers)
-        body = await request.body()
+        body = await request.body()  # body.decode(errors='replace')
 
-        print(f'Method: {method}')
-        print(f'Path: {path}')
-        print(f'Query: {query_string}')
-        print(f'Headers: {headers}')
-        print(f'Body: {body.decode(errors='replace')}')
-
-        # 响应
-        await send({
-            'type': 'http.response.start',
-            'status': 200,
-            'headers': [
-                (b'content-type', b'text/plain; charset=utf-8'),
-            ]
-        })
-        await send({
-            'type': 'http.response.body',
-            'body': b'Hello, ASGI!',
-        })
+        response = await response_for_path(request)
+        await response(scope, receive, send)
     elif scope['type'] == 'websocket':
         # 1. 接受连接
         while True:

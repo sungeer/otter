@@ -4,7 +4,7 @@ import threading
 import MySQLdb
 from MySQLdb.cursors import DictCursor
 
-from otter.conf import settings
+from viper.conf import settings
 
 
 def get_db_conn():
