@@ -1,6 +1,6 @@
 # Otter
 
-*A lightweight, thread-safe MySQL connection pool for Python, designed for simplicity and reliability.*
+*Async backend depends on the Starlette ASGI toolkit.*
 
 ## Installation
 
