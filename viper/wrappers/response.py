@@ -57,7 +57,7 @@ def abort(error_code, message=None):
 def sseify(event_generator):
     async def wrapper():
         async for data in event_generator():
-            # data: {'type': 'TEXT', 'status': 'SUCCEEDED', 'content': 'hello'}
+            # return f'data: {json.dumps(data)}\n\n'
             if isinstance(data, BaseResponse):
                 payload = data.to_dict()
             else:
