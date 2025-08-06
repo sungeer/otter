@@ -1,14 +1,15 @@
 from http import HTTPStatus
 
 from starlette.responses import JSONResponse
+from starlette.responses import StreamingResponse
 
-from viper.utils.util_json import dict_to_json_stream
+from viper.utils import util_json
 
 
 class JsonExtendResponse(JSONResponse):
 
     def render(self, content):
-        return dict_to_json_stream(content)
+        return util_json.dict_to_json_stream(content)
 
 
 class BaseResponse:
@@ -51,3 +52,17 @@ def abort(error_code, message=None):
     response.message = message
     response = response.to_dict()
     return JsonExtendResponse(response)
+
+
+def sseify(event_generator):
+    async def wrapper():
+        async for data in event_generator():
+            if isinstance(data, BaseResponse):
+                payload = data.to_dict()
+            else:
+                payload = BaseResponse()
+                payload.data = data
+                payload = payload.to_dict()
+            sse_data = f'data: {util_json.dict_to_json(payload)}\n\n'
+            yield sse_data
+    return StreamingResponse(wrapper(), media_type='text/event-stream')
