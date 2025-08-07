@@ -58,12 +58,9 @@ def sseify(event_generator):
     async def wrapper():
         async for data in event_generator():
             # return f'data: {json.dumps(data)}\n\n'
-            if isinstance(data, BaseResponse):
-                payload = data.to_dict()
-            else:
-                payload = BaseResponse()
-                payload.data = data
-                payload = payload.to_dict()
+            payload = BaseResponse()
+            payload.data = data
+            payload = payload.to_dict()
             sse_data = f'data: {util_json.dict_to_json(payload)}\n\n'
             yield sse_data
     return StreamingResponse(wrapper(), media_type='text/event-stream')
