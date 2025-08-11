@@ -17,7 +17,7 @@ async def get_todos():
     async with engine.connect() as conn:
         result = await conn.execute(text(sql_str), params)
         # data is [] or [{'id': 1, 'name': 'a'}, {'id': 2, 'name': 'b'}]
-        data = result.mappings().all()
+        data = [dict(r) for r in result.mappings()]
     return data
 
 
@@ -35,8 +35,9 @@ async def get_todo_by_id():
 
     async with engine.connect() as conn:
         result = await conn.execute(text(sql_str), params)
+        row = result.mappings().first()
         # data is None or {'id': 123, 'name': '张三'}
-        data = result.mappings().first()
+        data = None if row is None else dict(row)
     return data
 
 
