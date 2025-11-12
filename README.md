@@ -1,13 +1,15 @@
-# Otter
+# Fastify
 
 *Async backend depends on the Starlette ASGI toolkit.*
+
+> For Backend Developers Who Don't Want to Use FastAPI.
 
 ## Installation
 
 clone:
 ```
-$ git clone https://github.com/sungeer/otter.git
-$ cd otter
+$ git clone https://github.com/sungeer/fastify.git
+$ cd fastify
 ```
 create & activate virtual env then install dependency:
 
