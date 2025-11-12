@@ -4,10 +4,7 @@ pip freeze > requirements.txt
 pip install -r requirements.txt
 
 
-python -m pip install python-dotenv loguru starlette uvicorn
-
-
-python -m pip install SQLAlchemy asyncmy
+python -m pip install loguru starlette uvicorn
 
 
 uvicorn viper:app --host 127.0.0.1 --port 7788
